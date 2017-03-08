@@ -19,21 +19,22 @@ class MyServiceActor extends Actor with MyService {
 
 case class Number(v2: Double, v3: Int, v4: Int)
 
-object CSVStore {
+class CSVStore(filename: String){
   def path = "src/main/resources/"
-  def f1 = path + "f1.csv"
-  def f2 = path +"f2.csv"
+  def fullPath = path+filename
 
-  def writeToCSV(writingStuff: Array[String], filename: String){
-    val pw = new PrintWriter(new File(filename))
+  def writeToCSV(writingStuff: Array[String]){
+    val pw = new PrintWriter(new File(fullPath))
     writingStuff.foreach( x=>pw.write(x+","))
     pw.close()
   }
-  def csvFileToArray(filename: String) = io.Source.fromFile(filename).getLines().next().split(",")
-  def changeNumberInFile(filename: String, number: Double, position: Int): Unit ={
-    val f2 = csvFileToArray(filename)
+
+  def csvFileToArray() = io.Source.fromFile(fullPath).getLines().next().split(",")
+
+  def changeNumberInFile(number: Double, position: Int): Unit ={
+    val f2 = csvFileToArray()
     f2(position) = number.toString
-    writeToCSV(f2, filename)
+    writeToCSV(f2)
   }
 }
 
@@ -63,21 +64,22 @@ trait MyService extends HttpService {
   val myRoute =
     pathPrefix("rest" / "calc") {
       respondWithMediaType(`text/xml`) {
+        val FirstCSV = new CSVStore("f1.csv")
+        val SecondCSV = new CSVStore("f2.csv")
         post {
           import NumberJsonSupport._
           var returning = 0
           entity(as[Number]) { number =>
-            val f1 = CSVStore.csvFileToArray(CSVStore.f1)
-            var f2 = CSVStore.csvFileToArray(CSVStore.f2)
+            val f1 = FirstCSV.csvFileToArray()
             val (returning, result) = Calculator.changeParameter(f1(number.v3).toDouble, number.v2)
-            CSVStore.changeNumberInFile(CSVStore.f2, result, number.v4)
+            SecondCSV.changeNumberInFile(result, number.v4)
             complete {
                 <result>{returning}</result>
             }
           }
         } ~ get {
           parameters('v1.as[Int]) { (v1) =>
-            val f2 = CSVStore.csvFileToArray(CSVStore.f2)
+            val f2 = SecondCSV.csvFileToArray()
             val number = f2(v1).toDouble
             val result = Calculator.getParameter(number)
             complete {

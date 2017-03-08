@@ -19,6 +19,10 @@ b) set parameter correctly
  */
 class CalculationsTest extends FlatSpec{
 
+  val FirstCSV = new CSVStore("f1.csv")
+  val SecondCSV = new CSVStore("f2.csv")
+  val TempCSV = new CSVStore("temp.csv")
+
   implicit class FileMonads(f: File) {
     def check = f.exists
     def size = f.length()
@@ -55,20 +59,20 @@ class CalculationsTest extends FlatSpec{
 
   var testArray = randomArray(15).toArray
   "CVSStore" should "return exists files from pathes" in {
-    assert(new File(CSVStore.f1).check)
-    assert(new File(CSVStore.f2).check)
+    assert(new File(FirstCSV.fullPath).check)
+    assert(new File(SecondCSV.fullPath).check)
   }
   it should "write array to file" in {
-    CSVStore.writeToCSV(testArray, "temp.csv")
+    TempCSV.writeToCSV(testArray)
     assert(new File("temp.csv").size > 0)
   }
   it should "transform csv file to double array" in {
-    val isTestArray = CSVStore.csvFileToArray("temp.csv")
+    val isTestArray = TempCSV.csvFileToArray()
     assert(testArray.sameElements(isTestArray))
   }
   it should "change number on specific position" in {
-    CSVStore.changeNumberInFile("temp.csv", 127.0, 2)
-    val fileArray = CSVStore.csvFileToArray("temp.csv")
+    TempCSV.changeNumberInFile(127.0, 2)
+    val fileArray = TempCSV.csvFileToArray()
     testArray(2) = 127.0.toString
     assert(testArray.sameElements(fileArray))
   }
