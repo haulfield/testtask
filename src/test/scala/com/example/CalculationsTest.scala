@@ -19,10 +19,9 @@ b) set parameter correctly
  */
 class CalculationsTest extends FlatSpec{
 
-  val FirstCSV = new CSVStore("f1.csv")
-  val SecondCSV = new CSVStore("f2.csv")
+  val FirstCSV = new CSVStore("f1.csv", Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
+  val SecondCSV = new CSVStore("f2.csv", Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
   val TempCSV = new CSVStore("temp.csv")
-
 
   implicit class FileMonads(f: File) {
     def check = f.exists
@@ -76,10 +75,6 @@ class CalculationsTest extends FlatSpec{
     val fileArray = TempCSV.csvFileToArray()
     testArray(2) = 127.0.toString
     assert(testArray.sameElements(fileArray))
-  }
-  it should "return csv files to first look" in {
-    FirstCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
-    SecondCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
   }
 }
 

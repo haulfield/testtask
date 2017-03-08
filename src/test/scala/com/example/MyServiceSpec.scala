@@ -10,11 +10,11 @@ import shapeless.~>
 class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
   def actorRefFactory = system
 
-  val FirstCSV = new CSVStore("f1.csv")
-  val SecondCSV = new CSVStore("f2.csv")
+  val FirstCSV = new CSVStore("f1.csv", Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
+  val SecondCSV = new CSVStore("f2.csv", Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
+
   def beBetween(i: Int, j: Int) = be_>=(i) and be_<=(j)
   "MyService" should {
-
 
     "leave GET requests to paths others to /rest/calc/ unhandled" in {
       Get("/") ~> myRoute ~> check {
@@ -31,13 +31,10 @@ class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
       }
     }
 
-    "work with original files and /rest/calc/?v1=0 should return first element of f2 file in XML" in {
+    "/rest/calc/?v1=0 should return first element of f2 file in XML" in {
+      val number = SecondCSV.csvFileToArray()(0).toDouble
+      val testResult = Calculator.getParameter(number)
       Get("/rest/calc/?v1=0") ~> myRoute ~> check {
-        FirstCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
-        SecondCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
-        val tempFile = SecondCSV.csvFileToArray()
-        val number = tempFile(0).toDouble
-        val testResult = if (number > 10) number - 10 else number
         contentType.toString must contain("text/xml")
         responseAs[String] must contain(testResult.toString)
       }
@@ -47,7 +44,7 @@ class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
       val number = io.Source.fromFile("src/main/resources/f2.csv").getLines().next().split(",")(0).toDouble
       Post("/rest/calc/", HttpEntity(`application/json`,"""{"v2":1,"v3":2,"v4":0}""")) ~>
         myRoute ~> check{
-        val secondNumber = io.Source.fromFile("src/main/resources/f2.csv").getLines().next().split(",")(0).toDouble
+        val secondNumber = SecondCSV.csvFileToArray()(0).toDouble
         number must not equalTo(secondNumber)
       }
     }
@@ -65,8 +62,6 @@ class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
       Post("/rest/calc/", HttpEntity(`application/json`,"""{"v2":1,"v3":2,"v4":1}""")) ~>
         myRoute ~> check{
         val secondNumber = io.Source.fromFile("src/main/resources/f2.csv").getLines().next().split(",")(1).toDouble
-        FirstCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
-        SecondCSV.writeToCSV(Array(1.1, 2.2, 3.3, 4.4, 5.5, 6.5).map(x=>x.toString))
         secondNumber must equalTo(14.3)
       }
     }

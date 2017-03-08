@@ -20,6 +20,11 @@ class MyServiceActor extends Actor with MyService {
 case class Number(v2: Double, v3: Int, v4: Int)
 
 class CSVStore(filename: String){
+  def this(filename:String, arr: Array[String]){
+    this(filename);
+    writeToCSV(arr)
+  }
+
   def path = "src/main/resources/"
   def fullPath = path+filename
 
@@ -63,9 +68,9 @@ trait MyService extends HttpService {
 
   val myRoute =
     pathPrefix("rest" / "calc") {
+      val FirstCSV = new CSVStore("f1.csv")
+      val SecondCSV = new CSVStore("f2.csv")
       respondWithMediaType(`text/xml`) {
-        val FirstCSV = new CSVStore("f1.csv")
-        val SecondCSV = new CSVStore("f2.csv")
         post {
           import NumberJsonSupport._
           var returning = 0
@@ -74,7 +79,7 @@ trait MyService extends HttpService {
             val (returning, result) = Calculator.changeParameter(f1(number.v3).toDouble, number.v2)
             SecondCSV.changeNumberInFile(result, number.v4)
             complete {
-                <result>{returning}</result>
+              <result>{returning}</result>
             }
           }
         } ~ get {
