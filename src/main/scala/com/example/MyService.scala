@@ -41,6 +41,10 @@ class CSVStore(filename: String){
     f2(position) = number.toString
     writeToCSV(f2)
   }
+
+  def removeFile(): Unit = {
+    new File(this.fullPath).delete()
+  }
 }
 
 object Calculator {

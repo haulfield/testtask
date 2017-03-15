@@ -15,7 +15,6 @@ class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
 
   def beBetween(i: Int, j: Int) = be_>=(i) and be_<=(j)
   "MyService" should {
-
     "leave GET requests to paths others to /rest/calc/ unhandled" in {
       Get("/") ~> myRoute ~> check {
         handled must beFalse
@@ -62,10 +61,10 @@ class MyServiceSpec extends Specification with Specs2RouteTest with MyService {
       Post("/rest/calc/", HttpEntity(`application/json`,"""{"v2":1,"v3":2,"v4":1}""")) ~>
         myRoute ~> check{
         val secondNumber = io.Source.fromFile("src/main/resources/f2.csv").getLines().next().split(",")(1).toDouble
+        FirstCSV.removeFile()
+        SecondCSV.removeFile()
         secondNumber must equalTo(14.3)
       }
     }
-
-
   }
 }
